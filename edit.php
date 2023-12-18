@@ -1,0 +1,226 @@
+<?php
+require('db.php');
+$id=$_REQUEST['id'];
+$query = "SELECT * from users where id='".$id."'"; 
+$result = mysqli_query($con, $query) or die ( mysqli_error($con));
+$row = mysqli_fetch_assoc($result);
+?>
+<?php
+$status = "";
+if(isset($_POST['new']) && $_POST['new']==1)
+{
+$id=$_REQUEST['id'];
+$trn_date = date("Y-m-d H:i:s");
+$name =$_REQUEST['name'];
+$age =$_REQUEST['age'];
+$submittedby = $_SESSION["username"];
+$update="update new_record set trn_date='".$trn_date."',
+name='".$name."', age='".$age."',
+submittedby='".$submittedby."' where id='".$id."'";
+mysqli_query($con, $update) or die(mysqli_error($con));
+$status = "Record Updated Successfully. </br></br>
+<a href='view.php'>View Updated Record</a>";
+echo '<p style="color:#FF0000;">'.$status.'</p>';
+}else {
+}
+?>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Update Form</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
+  </head>
+  <body>
+    <div class="testbox">
+      <div id="myform" class="form">
+     
+          <h1>Update Form</h1>
+<p class="hrefClass"><a href="viewUser.php">View Record</a> </p>
+      
+          <h2 class="success" id="thqmsg"></h2>
+        <div class="item">
+          <p>Name</p>
+          <div class="name-item">
+            <input type="text" placeholder="First Name" id="first_name" value="<?php echo $row['first_name'];?>"/>
+            
+            <input type="text" placeholder="Last Name" id="last_name" value="<?php echo $row['last_name'];?>"/>
+          </div>
+          <span class="error" id="fn_err"></span>
+          <span class="error" id="ln_err"></span>
+        </div>
+        <input type="hidden" id="userId" value="<?php echo $row['id'];?>">
+        <div class="item">
+          <p>Gender</p>
+          <select id="gender">
+        <option value="">Select Gender</option>
+        <option value="Male" <?php if($row['gender'] == "Male") { echo "selected"; } ?>>Male</option>
+        <option value="Female" <?php if($row['gender'] == "Female") { echo "selected"; } ?>>Female</option>
+        <option value="Other" <?php if($row['gender'] == "Other") { echo "selected"; } ?>>Other</option>
+    </select>
+    <span class="error" id="gender_err"></span>
+        </div>
+        <div class="item">
+          <p>Email</p>
+          <input type="text" placeholder="Email Address" id="email" value="<?php echo $row['email'];?>"/>
+          <span class="error" id="email_err"></span>
+        </div>
+        
+        <div class="item">
+          <p>Address</p>
+          
+          <div class="city-item">
+            
+            <input type="text" placeholder="Pin code" id="pin_code" value="<?php echo $row['pin_code'];?>"/>
+            <input type="text" placeholder="Country" id="country" value="<?php echo $row['country'];?>"> 
+            <span class="error" id="add_err"></span>
+          </div>
+        </div>     
+        <div class="btn-block">
+        <button type="submit" id="submitbtn">Update</button>
+        </div>
+      </div>
+      <div id="userList"></div>
+    </div>
+  </body>
+  
+
+  
+  <script type="text/javascript">
+    function validateEmail($email) {
+        var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+        return emailReg.test($email);
+    }
+    $('#email').change(function () {
+        if ($('#email').val() == "" || !validateEmail($('#email').val())) {
+            $('#email_err').text("Invalid Email");
+            return;
+        }
+        else {
+            $('#email_err').text("");
+            duplicateEmail();
+        }
+    });
+   
+    $('#submitbtn').click(function (e) {
+      if ($('#first_name').val() == "") {
+            $('#fn_err').text("Please Enter First Name");
+            return;
+        }
+        else
+        {
+            $('#fn_err').text("");
+        }
+        if ($('#last_name').val() == "") {
+            $('#ln_err').text("Please Enter Last Name");
+            return;
+        }
+        else
+        {
+            $('#ln_err').text("");
+        }
+        if ($('#email').val() == "" || !validateEmail($('#email').val()) || duplicateEmail()) {
+            $('#email_err').text("Invalid Email");
+            return;
+        }
+        else
+        {
+            $('#email_err').text("");
+        }
+        if ($('#gender').val() == "") {
+            $('#gender_err').text("Please Select Gender");
+            return;
+        } 
+        else
+        {
+            $('#gender_err').text("");
+        }
+        if ($('#pin_code').val() == "") {
+            $('#add_err').text("Please Enter Pin Code");
+            return;
+        }
+        else
+        {
+            $('#add_err').text("");
+        }
+        if ($('#country').val() == "") {
+            $('#add_err').text("Please Enter Country");
+            return;
+        }
+        else
+        {
+            $('#add_err').text("");
+        }
+
+        if (!duplicateEmail()) {
+                var first_name = $('#first_name').val();
+                var last_name = $('#last_name').val();
+                var email = $('#email').val();
+                var gender = $('#gender').val();
+                var country = $('#country').val();
+                var pin_code = $('#pin_code').val();
+                var userId = $('#userId').val();
+                    $.ajax({
+                          type:"POST",
+                          url:"process.php",
+                          data: {
+                            updateUser: "update",
+                            first_name: first_name,
+                            last_name: last_name,
+                            email: email,
+                            gender: gender,
+                            country: country,
+                            pin_code: pin_code,
+                            userId: userId                            
+                          },
+                          cache:true,
+                        success: function (Result) {
+                          // alert(Result);
+                            $('#thqmsg').text("Your account details have been saved.");
+                           
+                        }
+                    });
+                
+            }
+            else
+            {
+                $('#email_err').text("Email Is Already Exist!!");
+                $('#submitbtn').hide();
+            }
+
+    });
+
+
+
+    function duplicateEmail() {
+        var Email = $('#email').val();
+        var userId = $('#userId').val();
+        var dataString ="update_email="+Email+"&userId="+userId;
+        $.ajax({
+            type:"POST",
+          url:"process.php",
+          data:dataString,
+          cache:true,
+            success: function (Result) {
+              // alert(Result);
+                if (Result == 'Error') {
+                    $('#email_err').text("Email Is Already Exist!!");
+                    $('#submitbtn').hide();
+                    return false;
+                }
+                else {
+                    $('#email_err').text("");
+                    $('#submitbtn').show();
+                }
+                
+            }
+        });
+    }
+
+
+
+    </script>
+</html>
